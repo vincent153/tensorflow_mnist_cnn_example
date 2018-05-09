@@ -1,6 +1,6 @@
 import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
-
+import cv2
 mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
 
 def compute_accuracy(v_xs, v_ys):
@@ -65,13 +65,30 @@ b_out = bias_variable([classes])
 prediction = tf.nn.softmax(tf.matmul(fc1, W_out) + b_out)
 
 
+#img_tf = tf.Variable(img)
+
 saver = tf.train.Saver()
 test = mnist.test#load test data
-with tf.Session() as sess:
-    sess.run(tf.global_variables_initializer())
-    saver.restore(sess, 'model/mnist_cnn.ckpt')#load model
-    bx,by = test.next_batch(10)#get small batch of data
-    print('label :{}'.format(by))#print coorect label
-    res = sess.run(prediction, feed_dict={xs: bx,keep_prob:0.5})
-    print(sess.run(tf.argmax(res,1)))#print predict
+def classify(img):
+    #img = cv2.imread(file_name,-1)
+    img = cv2.resize(img,(28,28),interpolation=cv2.INTER_CUBIC)
+    #cv2.imshow('img',img)
+    #cv2.waitKey()
+    img = img.reshape([-1,784])
+    with tf.Session() as sess:
+        sess.run(tf.global_variables_initializer())
+        saver.restore(sess, 'model/mnist_cnn.ckpt')#load model
+        bx,by = test.next_batch(10)#get small batch of data
+        #cv2.imshow('aaa',bx[1].reshape([28,28]))
+        #cv2.waitKey()
+        #print('label :{}'.format(by))#print coorect label
+        res = sess.run(prediction, feed_dict={xs: img,keep_prob:0.5})
+        digit = sess.run(tf.argmax(res,1))
+        print(digit)#print predict
+        return digit[0]
+if __name__ =='__main__':
+    import sys
+
+    classify(cv2.imread(sys.argv[1]))
+    #classify('tmp.png')
 
