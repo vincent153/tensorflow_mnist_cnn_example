@@ -19,13 +19,17 @@ class Drawer(QWidget):
         self._left = False
         self.setStyleSheet("background-color:white;")
         self.img_data = None
-        print(dir(self.newPoint))
+        #print(dir(self.newPoint))
 
     def btn_event(self):
         digit = load_and_predict.classify(self.img_data)
-        msg = QMessageBox(self)
-        msg.setText('you are writing:{}'.format(digit))
-        msg.show()
+        buttonReply = QMessageBox.information(self, 'res', 'you are writing:{}'.format(digit), QMessageBox.Yes , QMessageBox.Yes)
+        if buttonReply == QMessageBox.Yes:
+            self.path = QPainterPath()
+            self.update()
+
+    def btnEvent2(self):
+        print('hi')
     def paintEvent(self, event):
         p = QPen(QtCore.Qt.black)
         p.setWidth(20)
@@ -60,7 +64,6 @@ class Drawer(QWidget):
             cvMat=cv2.imread(file_name,-1)
             cvMat = 255-cvMat
             self.img_data = cvMat
-            #load_and_predict.classify(cvMat)
             self._left = False
             pass
         elif event.button() == QtCore.Qt.RightButton:
