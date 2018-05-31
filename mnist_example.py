@@ -1,8 +1,11 @@
 import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
 import sys
-
+from pathlib import Path
 mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
+model_path = Path('model')
+if not model_path.is_dir():
+    model_path.mkdir()
 
 def compute_accuracy(v_xs, v_ys):
     global prediction
@@ -69,11 +72,12 @@ prediction = tf.nn.softmax(tf.matmul(fc1, W_out) + b_out)
 cross_entropy = tf.reduce_mean(-tf.reduce_sum(ys * tf.log(prediction),
                                               reduction_indices=[1]))
 train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
-
+saver = tf.train.Saver()
 with tf.Session(config=None) as sess:
     sess.run(tf.global_variables_initializer())
-    for i in range(500):
+    for i in range(5000):
         batch_xs, batch_ys = mnist.train.next_batch(100)
         sess.run(train_step, feed_dict={xs: batch_xs, ys: batch_ys, keep_prob:0.5})
         if i % 50 == 0:
             print(compute_accuracy(mnist.test.images, mnist.test.labels[:5000]))
+        saver.save(sess, "./model/mnist_cnn.ckpt")
