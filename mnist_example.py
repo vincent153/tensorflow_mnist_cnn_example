@@ -56,7 +56,7 @@ ys = tf.placeholder(tf.float32, [None, 10])
 keep_prob = tf.placeholder(tf.float32)#drop out rate
 x_image = tf.reshape(xs, [-1, 28, 28, 1])
 
-conv1 = build_conv_layer(x_image[:5000],[5,5],32)
+conv1 = build_conv_layer(x_image,[5,5],32)
 conv2 = build_conv_layer(conv1,[5,5],64)
 conv3 = build_conv_layer(conv2,[1,1],48)
 fc1 = build_fc_layer(conv3,1024,keep_prob)
@@ -66,18 +66,21 @@ fc1 = build_fc_layer(conv3,1024,keep_prob)
 classes = 10
 W_out = weight_variable([1024, classes])
 b_out = bias_variable([classes])
-prediction = tf.nn.softmax(tf.matmul(fc1, W_out) + b_out)
 
+logits = tf.matmul(fc1, W_out) + b_out
 
-cross_entropy = tf.reduce_mean(-tf.reduce_sum(ys * tf.log(prediction),
-                                              reduction_indices=[1]))
-train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
+prediction = tf.nn.softmax(logits)
+cross_entropy = tf.nn.softmax_cross_entropy_with_logits(logits=logits,labels=ys)
+train_step = tf.train.AdamOptimizer(1e-4).minimize(tf.reduce_mean(cross_entropy))
+
 saver = tf.train.Saver()
+
 with tf.Session(config=None) as sess:
     sess.run(tf.global_variables_initializer())
-    for i in range(5000):
+    for i in range(2000):
         batch_xs, batch_ys = mnist.train.next_batch(100)
         sess.run(train_step, feed_dict={xs: batch_xs, ys: batch_ys, keep_prob:0.5})
         if i % 50 == 0:
-            print(compute_accuracy(mnist.test.images, mnist.test.labels[:5000]))
-        saver.save(sess, "./model/mnist_cnn.ckpt")
+            acc = compute_accuracy(mnist.test.images[:3000], mnist.test.labels[:3000])
+            print('epoch:{},acc:{}'.format(i,acc))
+        saver.save(sess, "./model/mnist_cnn3.ckpt")

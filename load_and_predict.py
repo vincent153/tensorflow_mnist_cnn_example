@@ -73,13 +73,22 @@ def classify(img,inverse=False):
     img = cv2.resize(img,(28,28),interpolation=cv2.INTER_CUBIC)
     if inverse:
         img = 255-img
+    img = img/255
     #cv2.imshow('img',img)
     #cv2.waitKey()
     img = img.reshape([-1,img.shape[0],img.shape[1],1])
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
-        saver.restore(sess, 'model/mnist_cnn.ckpt')#load model
+        saver.restore(sess, 'model/mnist_cnn3.ckpt')#load model
         res = sess.run(prediction, feed_dict={x_image: img,keep_prob:1})
+        internal_out = sess.run(conv1, feed_dict={x_image: img,keep_prob:1})
+        #print(internal_out[0,:,:,0].shape)
+           
+             
+        for i in range(internal_out.shape[3]):
+            img = internal_out[0,:,:,i]
+            cv2.imwrite('{}.png'.format(i),img)
+        
         digit = sess.run(tf.argmax(res,1))
         print(digit)#print predict
         return digit[0]
